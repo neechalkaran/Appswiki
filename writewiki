@@ -1,0 +1,74 @@
+
+function writeWiki(la,pa,tex,sum,sec,fil) {
+//var result = writewiki("ta","User talk:Neechalkaran/test","Statistics",test,"new","");
+
+  var dom =".wikipedia.org";
+ var user ="";
+ var pass = "";
+var rtoken = getBOTtoken(pa, la, dom, user, pass);
+
+if (rtoken[0]=="1")
+{
+var pload = {
+"action":"edit",
+"format":"json",
+"title": pa,
+"token": rtoken[1],
+"text":tex,
+"summary":sum,
+"section":sec
+}
+
+var options = 
+{
+ "method" : "post",
+ "headers": {"cookie":rtoken[2]},
+ "payload" : pload
+}
+
+var editurl = "https://" + la + dom + "/w/api.php?bot";//?action=edit&format=json&title=" + pa + "&bot&basetimestamp=" + timestamp + "&token=" + token + "+\\";
+
+//return editurl;
+var edit = UrlFetchApp.fetch(editurl,options);
+var fresult = Utilities.jsonParse(edit.getContentText());
+return fresult.edit.result;
+}
+else{return rtoken[1];}//return error message
+}
+
+
+function getBOTtoken(page,la, dom,user,pass)
+{
+var tokenquery = "https://" + la + dom + "/w/api.php?action=login&format=json&lgname=" + user +"&lgpassword=" + pass;
+
+var options = {"method": "POST"};
+  
+    var login = UrlFetchApp.fetch(tokenquery,options); 
+    var data = Utilities.jsonParse(login.getContentText());
+    var tokenstr = String(data.login.token).split("\+")[0]+"%2B%5C"
+    
+   
+if (login.getResponseCode() === 200) {
+var loginquery = "https://" + la + dom + "/w/api.php?action=login&format=json&lgname=" + user +"&lgpassword=" + pass + "&lgtoken=" +tokenstr + "&lgdomain="+ la +dom;
+
+var options2 = {"method": "POST", "headers": {"cookie":data.login.cookieprefix+"Session="  + data.login.sessionid +"; path=/; domain=" + dom + "; HttpOnly;" + data.login.cookieprefix + "UserName=" + user}};
+    var lconfirm = UrlFetchApp.fetch(loginquery ,options2);    
+    var ct = lconfirm.getAllHeaders()["Set-Cookie"].join(";");//[5].split("centralauth_Token=")[1].split(";")[0];
+    if (lconfirm.getResponseCode() === 200) 
+    {
+     var data1 = Utilities.jsonParse(lconfirm.getContentText());
+if(data1.login.result=="Success"){
+var options3 = {"method": "GET", "headers": {"Content-Type":"application/x-www-form-urlencoded", "cookie":data1.login.cookieprefix + "Session=" + data1.login.sessionid + "; path=/; domain=" + dom + "; HttpOnly;" + data1.login.cookieprefix + "UserName=" + data1.login.lgusername + "; " + la + "wikiUserID=" + data1.login.lguserid + "; " + la + "wikiToken="+ data1.login.lgtoken}};
+var queryurl = "http://" + la + dom + "/w/api.php?action=query&format=json&meta=tokens%7Cuserinfo";
+var options3 = {"method": "GET", "headers": {"cookie":ct}};
+var qresult = UrlFetchApp.fetch(queryurl,options3);  
+
+var datai =Utilities.jsonParse(qresult.getContentText());
+return ["1",datai.query.tokens.csrftoken, ct];
+
+}
+else{ return  ["0", "Unable to get token",""];}
+}   
+    }
+}
+
