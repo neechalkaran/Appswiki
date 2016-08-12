@@ -1,0 +1,75 @@
+function kndailystat()
+{
+//to do change the page name and start trigger
+ var lan ="kn";
+var monthNames = ["ಜನವರಿ","ಫೆಬ್ರವರಿ","ಮಾರ್ಚ್","ಏಪ್ರಿಲ್","ಮೇ","ಜೂನ್","ಜುಲೈ","ಆಗಸ್ಟ್","ಸೆಪ್ಟೆಂಬರ್","ಅಕ್ಟೋಬರ್","ನವೆಂಬರ್","ಡಿಸೆಂಬರ್"];
+  
+  
+//  "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" 
+var page = "ವಿಕಿಪೀಡಿಯ:ಅಂಕಿಅಂಶ/" + new Date().getYear() + " " + monthNames[new Date().getMonth()];
+page = kntrans(page);
+//var page ="User_Talk:Neechalkaran/test";
+var search = "https://" + lan + ".wikipedia.org/w/api.php?action=query&meta=siteinfo&siprop=statistics&format=json";
+var content="<!--- stats starts--->{{User:Neechalkaran/Statnotice}}\n{| class=\"wikitable sortable\" style=\"width:90%\"\n|-\n! Date(Time)\n! Pages\n! Articles\n! Edits\n! Users\n! Files\n! Activeusers\n<!---Place new stats here--->\n|}\n<!--- stats ends--->";
+var date  = new Date().getDate() + "-" + (new Date().getMonth()+1) + "-" + new Date().getYear();// + " " + new Date().getHours() + ":" + new Date().getMinutes();
+var mySheet = SpreadsheetApp.openById("*******************").getSheetByName(lan);
+
+try {
+    var login = UrlFetchApp.fetch(search); 
+    var data = Utilities.jsonParse(login.getContentText());  
+  mySheet.getRange(2,1).setValue(data.query.statistics.pages);
+  mySheet.getRange(2,2).setValue(data.query.statistics.articles);
+  mySheet.getRange(2,3).setValue(data.query.statistics.edits);
+  mySheet.getRange(2,4).setValue(data.query.statistics.images);
+  mySheet.getRange(2,5).setValue(data.query.statistics.users);
+  mySheet.getRange(2,6).setValue(data.query.statistics.activeusers);
+
+var result = "{{User:Neechalkaran/template/daily\n|Date =" + kntrans(date);
+  result = result + "\n|Pages = " + data.query.statistics.pages;
+  result = result + "\n|dPages = " + (mySheet.getRange(2,1).getValue()-mySheet.getRange(1,1).getValue());
+  result = result + "\n|Articles = " + data.query.statistics.articles;
+  result = result + "\n|dArticles = " +  (mySheet.getRange(2,2).getValue()-mySheet.getRange(1,2).getValue());
+  result = result + "\n|Edits = " + data.query.statistics.edits;
+  result = result + "\n|dEdits = " + (mySheet.getRange(2,3).getValue()-mySheet.getRange(1,3).getValue());
+  result = result + "\n|Files = " + data.query.statistics.images;
+  result = result + "\n|dFiles = " + (mySheet.getRange(2,4).getValue()-mySheet.getRange(1,4).getValue());
+  result = result + "\n|Users = " + data.query.statistics.users;
+  result = result + "\n|dUsers = " + (mySheet.getRange(2,5).getValue()-mySheet.getRange(1,5).getValue());
+  result = result + "\n|Ausers = " + data.query.statistics.activeusers;
+  result = result + "\n|dAusers = " + (mySheet.getRange(2,6).getValue()-mySheet.getRange(1,6).getValue());
+  result =result + "\n}}\n<!---Place new stats here--->";
+
+ mySheet.deleteRow(1)
+  
+  
+ //filter starts to avoid duplicate comments
+try{
+var testurl2 = "https://" + lan + ".wikipedia.org/w/index.php?action=raw&title=" + page;//".wikipedia.org/w/api.php?action=query&export&exportnowrap&format=xml&titles=" + page;
+  var check = UrlFetchApp.fetch(testurl2);
+var data = check.getContentText();
+  var predata = data.split("<!--- stats starts--->")[1];    
+  var datatext=predata.split("<!--- stats ends--->")[0];
+  }
+  catch(e){
+  //Logger.log(e.toString());
+  var datatext= "";
+  }
+
+if(datatext.search("<!---Place new stats here--->")>0)
+{content="<!--- stats starts--->" + datatext + "<!--- stats ends--->";}
+
+content =content.replace("<!---Place new stats here--->",result);
+
+var vidai = writewiki(lan, page ,content,"statistics","","");
+}
+  catch(e){Logger.log(e.toString());}
+  
+}
+
+function kntrans(text)
+{
+  var hnum = "೧೨೩೪೫೬೭೮೯೦";
+  var anum = "1234567890";
+for(var i=0;i<hnum.length;i++)text=text.replace(RegExp(anum[i],"gi"),hnum[i]);
+  return text;
+}
