@@ -1,0 +1,169 @@
+function taWeeklyurl()
+{
+var mNames = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
+var weekname = new Date().getDate() + "-" + mNames[new Date().getMonth()] + "-" + new Date().getYear();
+var page= "விக்கிப்பீடியா:Statistics/weekly";
+var myUrl="http://ta.wikipedia.org/w/index.php?action=raw&title=விக்கிப்பீடியா:Statistics/weekly"
+var link = "[[" + page + "/" + weekname + "|" + weekname + "]]";
+
+
+  try {
+    var wdata = UrlFetchApp.fetch(myUrl).getContentText(); 
+
+
+wdata=wdata.replace(/<!--more-->/gi, " | " + link + "<!--more-->" );
+
+var vidai = AppsWikiLib.writeBOTwiki("ta", page, wdata ,"Url update","","");  
+  }
+  catch(e){Logger.log(e.toString());}
+  
+
+  
+}
+function setup()
+{
+ScriptApp.newTrigger("taWeekStat")
+   .timeBased()
+   .atHour(0)
+   .inTimezone("GMT")
+   .onWeekDay(ScriptApp.WeekDay.MONDAY)
+   .create();
+}
+
+
+function taWeekStat() {//running at GMT Monday 0 to 1 am at US server.
+
+var lan ="ta";
+var mNames = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ];
+var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+var admin = 0;//to adjust past dates(past 30 days are only available). follow UTC dateline
+var weekname = new Date().getDate()-admin + "-" + mNames[new Date().getMonth()] + "-" + new Date().getYear();
+var page = "விக்கிப்பீடியா:Statistics/weekly/" + weekname;
+
+
+var day =new Array();
+for(i=0;i<8;i++)
+{day[i]=new Date(); day[i].setDate(new Date().getDate()-i- admin); 
+day[i].setHours(23);
+day[i].setMinutes(59);
+day[i].setSeconds(59);
+day[i].setMilliseconds(999);
+}
+ var zerothday = Utilities.formatDate(day[0], "GMT", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+ var firstday = Utilities.formatDate(day[1], "GMT", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+ var secondday = Utilities.formatDate(day[2], "GMT", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+ var thirdday = Utilities.formatDate(day[3], "GMT", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+ var fourthday = Utilities.formatDate(day[4], "GMT", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+ var fifthday = Utilities.formatDate(day[5], "GMT", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+ var sixthday = Utilities.formatDate(day[6], "GMT", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+ var seventhday = Utilities.formatDate(day[7], "GMT", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"); 
+//Logger.log(zerothday + firstday + secondday + thirdday + fourthday + fifthday + sixthday + seventhday);
+
+var newData = new Array();
+var limit = "5000";
+var header = "{{பயனர்:Neechalkaran/statnotice}}\nகடந்த வாரப் புள்ளிவிபரம்: "  + seventhday.split("T")[0] + " to " + zerothday.split("T")[0];//+ datelimit.getDate() + "-" + monthNames[datelimit.getMonth()] + "-" + datelimit.getYear() + " to " + datestart.getDate() + "-" + monthNames[datestart.getMonth()] + "-" + datestart.getYear();  
+/*reading only new & edit types. 
+log type is equal to pagemove or new user creation https://www.mediawiki.org/wiki/API:Logevents
+*/
+
+
+  var rtoken = AppsWikiLib.getBOTtoken("User:Neechalkaran", "ta", ".wikipedia.org", "NeechalBOT", "");;
+  var options = {"method": "GET", "headers": {"cookie":rtoken[2]}};
+
+var allday = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=redirect%7c!bot&rclimit=" + limit + "&rctype=new%7cedit&rcend="+ seventhday + "&rcstart=" + zerothday;
+var day1 = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rctype=new%7cedit&rcend="+ seventhday + "&rcstart=" + sixthday;
+var day2 = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rctype=new%7cedit&rcend="+ sixthday + "&rcstart=" + fifthday;
+var day3 = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rctype=new%7cedit&rcend="+ fifthday + "&rcstart=" + fourthday;
+var day4 = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rctype=new%7cedit&rcend="+ fourthday + "&rcstart=" + thirdday;
+var day5 = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rctype=new%7cedit&rcend="+ thirdday + "&rcstart=" + secondday;
+var day6 = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rctype=new%7cedit&rcend="+ secondday + "&rcstart=" + firstday;
+var day7 = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rctype=new%7cedit&rcend="+ firstday + "&rcstart=" + zerothday;
+
+  newData = read(allday,options,newData,8,10);// all redirects
+  newData = read(day1,options,newData,8,10);
+  newData = read(day2,options,newData,8,10);
+  newData = read(day3,options,newData,8,10);
+  newData = read(day4,options,newData,8,10);
+  newData = read(day5,options,newData,8,10);
+  newData = read(day6,options,newData,8,10);
+  newData = read(day7,options,newData,8,10);
+//  Logger.log(newData);
+
+//new page without redirect
+//it collects bot created new pages as well 
+var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect&rclimit=" + limit + "&rcnamespace=0&rctype=new&rcend="+ seventhday+ "&rcstart=" + zerothday;
+newData = read(search,options,newData,1,10);
+
+  
+  //edits without redirect
+//using same token as all edits
+var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!bot&rclimit=" + limit + "&rcnamespace=0&rctype=edit&rcend="+ seventhday+ "&rcstart=" + zerothday;
+newData = read(search,options,newData,2,10);
+
+  
+  //new redirect pages
+//var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=redirect%7c!bot&rclimit=" + limit + "&rcnamespace=0&rctype=new&rcend="+ sdate;
+//newData = read(search,options,newData,3,10);
+var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&rcnamespace=Neechalkaran&format=json&list=recentchanges&rcprop=user%7csizes&rcshow=redirect%7c!bot&rclimit=" + limit + "&rcnamespace=0&rctype=new&rcend="+ seventhday + "&rcstart=" + zerothday;
+  newData = getredirect(search,options,newData,3,10,1);
+
+  
+  //new files pages - no redirect
+var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rcnamespace=6&rctype=log&rcend="+ seventhday + "&rcstart=" + zerothday;
+newData = read(search,options,newData,4,10);
+  
+//edit files pages - no redirect
+var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rcnamespace=6&rctype=edit&rcend="+ seventhday + "&rcstart=" + zerothday;
+newData = read(search,options,newData,5,10);  
+
+  
+//new template pages no redirects
+var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rcnamespace=10&rctype=new%7cedit&rcend="+ seventhday + "&rcstart=" + zerothday;
+newData = read(search,options,newData,6,10);
+  
+
+//new category pages no redirects
+var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user&rcshow=!redirect%7c!bot&rclimit=" + limit + "&rcnamespace=14&rctype=new%7cedit&rcend="+ seventhday + "&rcstart=" + zerothday;
+newData = read(search,options,newData,7,10);
+
+//included redirects because some of the move action change new pages to redirect pages  
+//contibuted size for new article
+var search = "http://" + lan + ".wikipedia.org/w/api.php?action=query&format=json&list=recentchanges&rcprop=user%7csizes&rcshow=!bot&rclimit=" + limit + "&rcnamespace=0&rctype=new%7cedit&rcend="+ seventhday + "&rcstart=" + zerothday;
+newData = getsize(search,options,newData,9,10);
+
+  
+//summarize
+for(i=0;i<newData.length;i++)
+{
+newData[i][8] = parseInt(newData[i][8])+parseInt(newData[i][4]); // to add image log
+newData[i][4]= parseInt(newData[i][4])+parseInt(newData[i][5]); // to join log and edit for image
+}
+  
+//sorting
+newData.sort(function(a, b) {return b[1]-a[1];})
+newData.sort(function(a, b) {return b[8]-a[8];})
+
+
+
+///
+var result = "{| class='wikitable sortable'\n|-\n! எண் !! பயனர்/ஐ.பி. !! புது !! தொகு !!  வழி !! படி !! வார் !! பகு !! இதர !! மொத்தம் !! பைட்\n";
+for(i=0;i<newData.length;i++)
+{
+  var diff = parseInt(newData[i][8])-(parseInt(newData[i][1])+parseInt(newData[i][2])+parseInt(newData[i][3])+parseInt(newData[i][4])+parseInt(newData[i][6])+parseInt(newData[i][7]));
+
+ // Logger.log(diff);
+result= result + "|-\n|" + (i+1) + "|| [[Special:Contributions/" + newData[i][0] + "|" + newData[i][0] +"]] ||" + newData[i][1] + "||" + newData[i][2] + "||" + newData[i][3] + "||" + newData[i][4]   + "||" + newData[i][6] + "||" + newData[i][7] + "||" + diff + "||" + newData[i][8] + "||" + newData[i][9] + "\n";
+}
+
+result = header + "\n" + result + "\n|}";
+
+//Logger.log(result);return;
+try{
+var vidai = AppsWikiLib.writeBOTwiki( lan, page ,result,"statistics","","");}
+catch(e){
+var DBid = DriveApp.createFile(page, result).getId();
+MailApp.sendEmail({to:"neechalkaran@gmail.com", subject:"Taweekstat", htmlBody: "stored at " +DBid});
+}
+//MailApp.sendEmail({to:"neechalkaran@gmail.com", subject:"Taweekstat", htmlBody: vidai});  
+Logger.log(vidai);
+}
